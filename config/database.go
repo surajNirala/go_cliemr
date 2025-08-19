@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/surajNirala/go_cliemr/internal/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -25,5 +26,12 @@ func InitDB() (*gorm.DB, error) {
 	}
 	// DB = db
 	fmt.Println("✅ Connected to MySQL")
+	// Run migrations
+	err = db.AutoMigrate(&models.RefreshToken{})
+	if err != nil {
+		log.Fatal("failed migration:", err)
+	}
+
+	log.Println("Migration completed ✅")
 	return db, nil
 }

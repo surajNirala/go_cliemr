@@ -16,6 +16,7 @@ func NewUserHandler(service *services.UserService) *UserHandler {
 }
 
 func (h *UserHandler) GetUserList(c *gin.Context) {
+
 	users, err := h.service.GetUserList()
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{

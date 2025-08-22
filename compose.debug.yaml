@@ -1,0 +1,8 @@
+services:
+  gocliemr:
+    image: gocliemr
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 7070:7070

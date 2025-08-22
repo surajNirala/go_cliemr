@@ -13,7 +13,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
+			utils.RespondError(c, "error", http.StatusUnauthorized, "Authorization header missing", "Authorization header is required")
 			c.Abort()
 			return
 		}
@@ -21,20 +21,22 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Expect "Bearer <token>"
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 		if token == authHeader {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
+			utils.RespondError(c, "error", http.StatusUnauthorized, "Invalid token format", "Token must be in 'Bearer <token>' format")
 			c.Abort()
 			return
 		}
 
 		claims, err := utils.ValidateAccessToken(token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			utils.RespondError(c, "error", http.StatusUnauthorized, "Invalid or expired token", err.Error())
 			c.Abort()
 			return
 		}
 
 		// Store claims in context (e.g., userID, role)
 		c.Set("userID", claims.UserID)
+		c.Set("flag", claims.Flag)
+		c.Set("email", claims.Email)
 		c.Next()
 	}
 }

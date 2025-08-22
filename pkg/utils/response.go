@@ -25,12 +25,16 @@ type SuccessResponse struct {
 	Data    any    `json:"data,omitempty"`
 }
 
-func RespondError(c *gin.Context, status string, code int, message string, details any) {
+func RespondError(c *gin.Context, status string, code int, message string, details ...any) {
+	var detail any
+	if len(details) > 0 {
+		detail = details[0] // take the first element if provided
+	}
 	c.JSON(code, ErrorResponse{
 		Status:  status,
 		Code:    code,
 		Message: message,
-		Details: details,
+		Details: detail,
 	})
 }
 

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -32,11 +33,11 @@ func (r *AuthRepository) Login(req *utils.LoginRequest) (string, string, error) 
 		return "", "", errors.New("Email/Password is incorrect")
 	}
 	// Generate tokens
-	accessToken, err := utils.GenerateAccessToken(user.ID, user.Email)
+	accessToken, err := utils.GenerateAccessToken(user.ID, user.Email, user.Flag)
 	if err != nil {
 		return "", "", errors.New("failed to generate access token")
 	}
-	refreshToken, err := utils.GenerateRefreshToken(user.ID, user.Email)
+	refreshToken, err := utils.GenerateRefreshToken(user.ID, user.Email, user.Flag)
 	if err != nil {
 		return "", "", errors.New("failed to generate refresh token")
 	}
@@ -46,9 +47,17 @@ func (r *AuthRepository) Login(req *utils.LoginRequest) (string, string, error) 
 		Token:  refreshToken,
 		Expiry: time.Now().Add(7 * 24 * time.Hour), // 7 days expiry
 	}
-
+	result = r.db.Where("user_id = ?", user.ID).Delete(&models.RefreshToken{}) // Remove old refresh tokens
+	if result.Error != nil {
+		return "", "", errors.New("failed to delete old refresh tokens")
+	}
 	if err := r.db.Create(&refreshRecord).Error; err != nil {
-		return "", "", errors.New("failed to save refresh token")
+		// Option 1: return actual error
+		return "", "", fmt.Errorf("failed to save refresh token: %w", err)
+
+		// OR Option 2: log it before returning
+		// log.Printf("error saving refresh token: %v", err)
+		// return "", "", errors.New("failed to save refresh token")
 	}
 
 	return accessToken, refreshToken, nil
@@ -72,7 +81,7 @@ func (r *AuthRepository) Refresh(req *utils.RefreshTokenRequest) (string, error)
 	}
 
 	// Generate new access token
-	accessToken, err := utils.GenerateAccessToken(claims.UserID, claims.Email)
+	accessToken, err := utils.GenerateAccessToken(claims.UserID, claims.Email, claims.Flag)
 	if err != nil {
 		return "", errors.New("failed to generate new access token")
 	}

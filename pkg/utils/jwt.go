@@ -12,16 +12,18 @@ var jwtSecret = []byte("your-secret-key")
 type Claims struct {
 	UserID uint   `json:"user_id"`
 	Email  string `json:"email"`
+	Flag   int    `json:"flag"`
 	jwt.RegisteredClaims
 }
 
 // Access Token (5–15 min)
-func GenerateAccessToken(userID uint, email string) (string, error) {
+func GenerateAccessToken(userID uint, email string, flag int) (string, error) {
 	claims := Claims{
 		UserID: userID,
 		Email:  email,
+		Flag:   flag,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(60 * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
@@ -30,10 +32,11 @@ func GenerateAccessToken(userID uint, email string) (string, error) {
 }
 
 // Refresh Token (7 days)
-func GenerateRefreshToken(userID uint, email string) (string, error) {
+func GenerateRefreshToken(userID uint, email string, flag int) (string, error) {
 	claims := Claims{
 		UserID: userID,
 		Email:  email,
+		Flag:   flag,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

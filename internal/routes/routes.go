@@ -14,6 +14,7 @@ func InitRoutes(r *gin.Engine, c *container.Container) {
 		v1.POST("/login", c.AuthHandler.Login)
 		v1.POST("/refresh", c.AuthHandler.Refresh)
 		v1.POST("/logout", c.AuthHandler.Logout)
-		v1.GET("/users", middleware.AuthMiddleware(), c.UserHandler.GetUserList)
+		v1.GET("/users", middleware.AuthMiddleware(), middleware.RequireRoles(1, 2), c.UserHandler.GetUserList)
+		v1.POST("/patient-import", middleware.AuthMiddleware(), middleware.RequireRoles(1, 2), c.ExcelHandler.PatientImport)
 	}
 }
